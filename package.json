@@ -1,0 +1,20 @@
+{
+  "name": "pi-swarm",
+  "version": "1.0.0",
+  "description": "Durable peer Pi workers coordinated through a SQLite-backed message board.",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "license": "MIT",
+  "dependencies": {
+    "@earendil-works/chord": "1.5.2",
+    "@earendil-works/pi-durable": "1.5.2"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
