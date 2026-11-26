@@ -151,9 +151,9 @@ async function settleWorker(runtime: DurableRuntime, worker: WorkerRecord) {
     }, BACKGROUND_CONTEXT);
   }
 }
-/** pi-worker-guards, when installed: its contract on globalThis (see that package's registry.ts). */
+/** pi-guards, when installed: its contract on globalThis (see that package's registry.ts). */
 type GuardsHost = { version: 1; extensions(host: string): readonly Extension[]; init(config: { review?: boolean; testCommand?: string }): ((tx: any, id: any) => Promise<void>) | undefined; opened(host: string, harness: unknown): void; closed(host: string): void };
-const guards = () => { const host = (globalThis as Record<symbol, GuardsHost | undefined>)[Symbol.for("pi-worker-guards.host")]; return host?.version === 1 ? host : undefined; };
+const guards = () => { const host = (globalThis as Record<symbol, GuardsHost | undefined>)[Symbol.for("pi-guards.host")]; return host?.version === 1 ? host : undefined; };
 async function ensureRuntime(ctx: ExtensionContext, ref: RuntimeRef, board: Extension) {
   if (!ref.value) {
     ref.extensions = [CodingTools, board, ...(guards()?.extensions("swarm") ?? [])] as Extension<ToolRegistration>[];
@@ -182,7 +182,7 @@ export default function (pi: ExtensionAPI) {
         case "models": { const models = await ctx.modelRegistry.getAvailable(); return { content: [{ type: "text", text: models.map((item) => `${item.provider}/${item.id}`).join("\n") || "No authenticated models available." }], details: { models: models.map(({ provider, id, name: label }) => ({ provider, id, name: label })) } }; }
         case "add": {
           if (!params.name || !params.brief) throw new Error("add requires name and brief");
-          if ((params.review || params.testCommand?.trim()) && !guards()) throw new Error("review and testCommand need the pi-worker-guards extension; install it with pi install, then restart Pi");
+          if ((params.review || params.testCommand?.trim()) && !guards()) throw new Error("review and testCommand need the pi-guards extension; install it with pi install, then restart Pi");
           if (!/^[a-z0-9][a-z0-9_-]{0,47}$/i.test(params.name)) throw new Error("Worker names must use letters, digits, _ or -");
           if (state.workers.filter((item) => item.status !== "stopped").length >= MAX_WORKERS) throw new Error(`At most ${MAX_WORKERS} workers are allowed`);
           if (state.workers.some((item) => item.name.toLowerCase() === params.name!.toLowerCase() && item.status !== "stopped")) throw new Error(`Worker ${params.name} already exists`);

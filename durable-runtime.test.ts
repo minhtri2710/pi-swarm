@@ -73,15 +73,15 @@ test("a worker's board wait parks across a restart until a post wakes it", async
   }
 });
 
-test("add refuses review and testCommand without pi-worker-guards, and installs its guards in the worker's harness", async () => {
+test("add refuses review and testCommand without pi-guards, and installs its guards in the worker's harness", async () => {
   const { default: swarm } = await import("./index.ts");
-  const key = Symbol.for("pi-worker-guards.host");
+  const key = Symbol.for("pi-guards.host");
   const tools: Record<string, any> = {}, on: Record<string, Function> = {};
   swarm({ registerTool: (tool: any) => { tools[tool.name] = tool; }, registerCommand: () => {}, on: (name: string, fn: Function) => { on[name] = fn; }, getSettings: () => ({}), sendMessage: () => {} } as any);
   const ctx = { ...context(`memory-${crypto.randomUUID()}`), model: undefined, thinkingLevel: "medium", modelRegistry: { getAll: () => [], getProvider: () => undefined, find: () => undefined, hasConfiguredAuth: () => false } };
   const add = (params: object) => tools.swarm.execute("id", { action: "add", name: "w", brief: "b", ...params }, undefined, undefined, ctx);
   delete (globalThis as any)[key];
-  await assert.rejects(add({ review: true }), /pi-worker-guards/);
+  await assert.rejects(add({ review: true }), /pi-guards/);
   await assert.rejects(add({}), /unknown or unauthenticated/);
   await on.session_shutdown({ reason: "quit" }, ctx);
   const opened: string[] = [];
