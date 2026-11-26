@@ -106,7 +106,8 @@ async function durableTool(ref: RuntimeRef, api: ToolExecutionApi, args: any, co
   // Check and register in one commit, so a post either lands before the check or finds the waiter.
   const ready = await api.commit(async (tx) => {
     const messages = selectMessages((await tx.doc(Swarm)).messages, args.channel, cursor, worker?.name);
-    if (messages.length) return messages;
+    // Draft values do not outlive the commit.
+    if (messages.length) return messages.map((message) => ({ ...message, mentions: [...message.mentions] }));
     const parked = await tx.doc(Waiters);
     if (!parked.waiters.some((waiter) => waiter.taskId === api.taskId)) parked.waiters.push({ taskId: api.taskId, cursor, ...(args.channel ? { channel: args.channel } : {}), ...(worker ? { name: worker.name } : {}) });
     return [];

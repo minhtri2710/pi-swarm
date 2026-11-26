@@ -60,8 +60,12 @@ test("a worker's board wait parks across a restart until a post wakes it", async
     await appendMessage(ref.value, "coordinator", "main", "go ahead");
     const submission = await harness.submission(submissionId, BACKGROUND_CONTEXT);
     assert.equal((await submission!.wait(BACKGROUND_CONTEXT)).status, "done");
-    const context = await (await harness.conversation(worker.id, BACKGROUND_CONTEXT))!.context(BACKGROUND_CONTEXT);
-    assert.match(JSON.stringify(context.messages), /go ahead/);
+    const resumed = (await harness.conversation(worker.id, BACKGROUND_CONTEXT))!;
+    assert.match(JSON.stringify((await resumed.context(BACKGROUND_CONTEXT)).messages), /go ahead/);
+    // A wait whose message is already on the board returns at once, without parking.
+    faux.appendResponses([fauxAssistantMessage(fauxToolCall("swarm", { action: "wait", since: 0 }), { stopReason: "toolUse" }), fauxAssistantMessage("seen")]);
+    assert.equal((await (await resumed.submit({ type: "input", content: "read" }, BACKGROUND_CONTEXT)).wait(BACKGROUND_CONTEXT)).status, "done");
+    assert.equal(JSON.stringify((await resumed.context(BACKGROUND_CONTEXT)).messages).match(/#1 @main coordinator: go ahead/g)?.length, 2);
     assert.equal((await snapshot(ref.value)).sequence, 1);
     await harness.close(BACKGROUND_CONTEXT);
   } finally {
