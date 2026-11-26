@@ -13,7 +13,3 @@ export function selectMessages(messages: readonly BoardMessage[], channel?: stri
 export function mentionsIn(text: string): string[] {
   return [...new Set((text.match(/@[a-z0-9_-]+|@all/gi) ?? []).map((value) => value.slice(1).toLowerCase()))];
 }
-export function isMentioned(message: BoardMessage, name: string): boolean {
-  const normalized = name.toLowerCase();
-  return message.mentions.includes("all") || message.mentions.includes(normalized);
-}
