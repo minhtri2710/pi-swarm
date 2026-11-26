@@ -72,3 +72,24 @@ test("a worker's board wait parks across a restart until a post wakes it", async
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("add refuses review and testCommand without pi-worker-guards, and installs its guards in the worker's harness", async () => {
+  const { default: swarm } = await import("./index.ts");
+  const key = Symbol.for("pi-worker-guards.host");
+  const tools: Record<string, any> = {}, on: Record<string, Function> = {};
+  swarm({ registerTool: (tool: any) => { tools[tool.name] = tool; }, registerCommand: () => {}, on: (name: string, fn: Function) => { on[name] = fn; }, getSettings: () => ({}), sendMessage: () => {} } as any);
+  const ctx = { ...context(`memory-${crypto.randomUUID()}`), model: undefined, thinkingLevel: "medium", modelRegistry: { getAll: () => [], getProvider: () => undefined, find: () => undefined, hasConfiguredAuth: () => false } };
+  const add = (params: object) => tools.swarm.execute("id", { action: "add", name: "w", brief: "b", ...params }, undefined, undefined, ctx);
+  delete (globalThis as any)[key];
+  await assert.rejects(add({ review: true }), /pi-worker-guards/);
+  await assert.rejects(add({}), /unknown or unauthenticated/);
+  await on.session_shutdown({ reason: "quit" }, ctx);
+  const opened: string[] = [];
+  (globalThis as any)[key] = { version: 1, extensions: (host: string) => [{ name: `guard-for-${host}` }], init: () => undefined, opened: (host: string) => opened.push(host), closed: () => {} };
+  await assert.rejects(add({ review: true }), /unknown or unauthenticated/);
+  assert.deepEqual(opened, ["swarm"]);
+  const runtime = await getRuntime(ctx);
+  assert.ok(runtime.registry.snapshot().extension("guard-for-swarm"));
+  delete (globalThis as any)[key];
+  await on.session_shutdown({ reason: "quit" }, ctx);
+});
