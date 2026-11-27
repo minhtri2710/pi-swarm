@@ -5,8 +5,8 @@ Peer Pi workers are independent `pi-durable` conversations. Worker records, tran
 ## Install
 
 ```sh
-cd ~/Work/pi-swarm && npm install --legacy-peer-deps
-pi install ~/Work/pi-swarm
+cd ~/Work/pi-extension/pi-swarm && npm install --legacy-peer-deps
+pi install ~/Work/pi-extension/pi-swarm
 ```
 
 Pi's local package installer does not install npm dependencies; run `npm install --legacy-peer-deps` in the package directory first. The `swarm` tool supports `models`, `add`, `status`, `model`, `stop`, `post`, `read`, `wait`, and `transcript`; `/swarm status` and `/swarm board` offer quick inspection. `add` requires a worker name, brief, and an authenticated `provider/model` (or inherits the coordinator model). Messages mentioning `@name` or `@all` are appended to the durable board and delivered as follow-up submissions to the matching workers. Every board record has a monotonic sequence number within the session database. `add` also takes `review` and `testCommand` for review and test-after-edit loops; they need the optional [pi-guards](https://github.com/minhtri2710/pi-guards) extension and are refused without it. With that extension installed, risky worker `bash` calls park until `/guards-approve` or `/guards-deny`.
